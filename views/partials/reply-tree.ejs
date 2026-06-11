@@ -1,0 +1,17 @@
+<% replyTree.forEach(function (node) { %>
+  <div class="md-reply md-panel">
+    <h4 style="margin:0 0 6px;font-size:14px;"><%= node.post.title %></h4>
+    <p style="font-size:11px;color:#4a4a4a;margin:0 0 10px;"><%= node.post.author %> · <%= new Date(node.post.created_at).toLocaleString('ko-KR') %></p>
+    <div style="font-size:13px;white-space:pre-wrap;"><%= node.post.content %></div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <% if (user) { %><a class="md-btn md-btn-g" href="<%= basePath %>/board/<%= node.post.id %>/reply">답글</a><% } %>
+      <% if (user && (isAdmin || user.id === node.post.user_id)) { %>
+        <a class="md-btn md-btn-g" href="<%= basePath %>/board/<%= node.post.id %>/edit">수정</a>
+        <form action="<%= basePath %>/board/<%= node.post.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('삭제?');">
+          <button type="submit" class="md-btn md-btn-b">삭제</button>
+        </form>
+      <% } %>
+    </div>
+    <% if (node.replies && node.replies.length) { %><%- include('reply-tree', { replyTree: node.replies }) %><% } %>
+  </div>
+<% }) %>

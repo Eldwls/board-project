@@ -1,0 +1,69 @@
+<%- include('../partials/head', { title: '주문/결제' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<div class="md-hero"><h1>CHECKOUT</h1><p style="max-width:1280px;margin:8px auto 0;color:#9e9e9e;">배송지 · 결제 · 완료</p></div>
+
+<div class="md-container" style="max-width:720px;">
+  <div class="md-steps">
+    <div class="md-step active" id="stepLabel1">1. 배송지</div>
+    <div class="md-step" id="stepLabel2">2. 결제</div>
+    <div class="md-step" id="stepLabel3">3. 확인</div>
+  </div>
+
+  <form action="<%= basePath %>/order/complete" method="POST" id="checkoutForm">
+    <div id="step1" class="md-panel md-form">
+      <h3 style="margin:0 0 16px;font-size:16px;font-weight:900;">배송지 입력</h3>
+      <label>수령인</label><input type="text" name="recipient_name" value="<%= user.name %>" required>
+      <label>연락처</label><input type="tel" name="phone" placeholder="010-0000-0000" required>
+      <label>주소</label><textarea name="address" required placeholder="도로명 주소를 입력해 주세요"></textarea>
+      <button type="button" class="md-btn md-btn-b" onclick="goStep(2)">다음</button>
+    </div>
+
+    <div id="step2" class="md-panel md-form" style="display:none;">
+      <h3 style="margin:0 0 16px;font-size:16px;font-weight:900;">결제 수단</h3>
+      <label><input type="radio" name="payment_method" value="무통장입금" checked> 무통장입금</label><br><br>
+      <label><input type="radio" name="payment_method" value="카드"> 카드 결제 (가상)</label>
+      <div style="margin-top:20px;display:flex;gap:8px;">
+        <button type="button" class="md-btn md-btn-g" onclick="goStep(1)">이전</button>
+        <button type="button" class="md-btn md-btn-b" onclick="goStep(3)">다음</button>
+      </div>
+    </div>
+
+    <div id="step3" class="md-panel" style="display:none;">
+      <h3 style="margin:0 0 16px;font-size:16px;font-weight:900;">주문 확인</h3>
+      <% items.forEach(function (it) { %>
+        <p style="font-size:13px;margin:4px 0;"><%= it.name %> (<%= it.size %>) × <%= it.quantity %> — <%= (it.price * it.quantity).toLocaleString() %>원</p>
+      <% }) %>
+      <p style="font-size:18px;font-weight:700;margin-top:16px;">총 <%= total.toLocaleString() %>원</p>
+      <div style="margin-top:20px;display:flex;gap:8px;">
+        <button type="button" class="md-btn md-btn-g" onclick="goStep(2)">이전</button>
+        <button type="button" class="md-btn md-btn-b" onclick="showPayModal()">결제하기</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="md-modal" id="payModal">
+  <div class="md-modal-box">
+    <h2>결제 완료</h2>
+    <p style="font-size:14px;color:#4a4a4a;margin-bottom:24px;">가상 결제가 완료되었습니다.<br>주문을 확정하시겠습니까?</p>
+    <button type="button" class="md-btn md-btn-b" onclick="document.getElementById('checkoutForm').submit();">주문 확정</button>
+    <button type="button" class="md-btn md-btn-g" style="margin-top:8px;" onclick="document.getElementById('payModal').classList.remove('show')">취소</button>
+  </div>
+</div>
+
+<script>
+function goStep(n) {
+  [1,2,3].forEach(function(i) {
+    document.getElementById('step'+i).style.display = i === n ? 'block' : 'none';
+    document.getElementById('stepLabel'+i).className = 'md-step' + (i === n ? ' active' : (i < n ? ' done' : ''));
+  });
+}
+function showPayModal() {
+  var f = document.getElementById('checkoutForm');
+  if (!f.recipient_name.value || !f.phone.value || !f.address.value) { alert('배송지를 입력해 주세요.'); goStep(1); return; }
+  document.getElementById('payModal').classList.add('show');
+}
+</script>
+
+<%- include('../partials/footer') %>

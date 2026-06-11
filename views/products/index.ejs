@@ -1,0 +1,81 @@
+<%- include('../partials/head', { title: 'SHOP' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<% if (flash) { %><div class="md-container" style="padding-bottom:0;"><div class="md-alert md-alert-err"><%= flash %></div></div><% } %>
+
+<section class="md-ranking">
+  <div class="md-container" style="padding-bottom:0;">
+    <h2 class="md-section-title"><span class="md-live"></span> 실시간 뭐든사 랭킹 TOP 5</h2>
+    <div class="md-ranking-grid">
+      <% ranking.forEach(function (p, i) { %>
+        <a href="<%= basePath %>/products/<%= p.id %>" class="md-rank-item">
+          <span class="md-rank-num"><%= i + 1 %></span>
+          <img src="<%= p.image %>" alt="<%= p.name %>" onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80'">
+          <div class="md-rank-info">
+            <p class="nm"><%= p.name %></p>
+            <p><%= p.price.toLocaleString() %>원 · ♥ <%= p.likes.toLocaleString() %></p>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<div class="md-container">
+  <div class="md-filters">
+    <% categories.forEach(function (cat) { %>
+      <a href="<%= basePath %>/products?category=<%= encodeURIComponent(cat) %>&sort=<%= currentSort %>&dir=<%= currentDir %>"
+         class="md-chip <%= currentCategory === cat ? 'active' : '' %>"><%= cat %></a>
+    <% }) %>
+
+    <form class="md-sort-form" method="GET" action="<%= basePath %>/products" id="sortForm">
+      <input type="hidden" name="category" value="<%= currentCategory %>">
+      <input type="hidden" name="dir" id="sortDir" value="<%= currentDir %>">
+      <select name="sort" class="md-sort-select" onchange="document.getElementById('sortForm').submit();">
+        <option value="likes" <%= currentSort === 'likes' ? 'selected' : '' %>>인기순</option>
+        <option value="price" <%= currentSort === 'price' ? 'selected' : '' %>>낮은 가격순</option>
+        <option value="price_high" <%= currentSort === 'price_high' ? 'selected' : '' %>>높은 가격순</option>
+        <option value="reviews" <%= currentSort === 'reviews' ? 'selected' : '' %>>후기 많은 순</option>
+      </select>
+      <button type="button" class="md-dir-toggle" onclick="toggleSortDir()" title="정렬 방향">
+        <%= currentDir === 'asc' ? '▲' : '▼' %>
+      </button>
+    </form>
+  </div>
+
+  <% if (!products.length) { %>
+    <p style="text-align:center;color:#9e9e9e;padding:48px;">해당 카테고리 상품이 없습니다.</p>
+  <% } else { %>
+    <div class="md-grid">
+      <% var listUrl = '/products?category=' + encodeURIComponent(currentCategory) + '&sort=' + currentSort + '&dir=' + currentDir; %>
+      <% products.forEach(function (product) { %>
+        <%- include('../partials/product-card', { product: product, wishlistIds: wishlistIds, redirectUrl: listUrl , user: user, basePath: basePath}) %>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+function toggleSortDir() {
+  var d = document.getElementById('sortDir');
+  d.value = d.value === 'asc' ? 'desc' : 'asc';
+  document.getElementById('sortForm').submit();
+}
+function setSizeAndBuy(form, pid, buyNow) {
+  var sel = document.getElementById('size-' + pid);
+  if (sel) form.querySelector('.size-input').value = sel.value;
+  if (!buyNow) {
+    setTimeout(function() {
+      if (confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
+        window.location.href = bp('/cart');
+      }
+    }, 100);
+  }
+  return true;
+}
+<% if (cartAdded) { %>
+  if (confirm('장바구니에 담겼습니다. 이동하시겠습니까?')) location.href = bp('/cart');
+<% } %>
+</script>
+
+<%- include('../partials/footer') %>

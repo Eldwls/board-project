@@ -1,0 +1,21 @@
+<header class="md-header">
+  <div class="md-header-inner">
+    <a href="<%= basePath %>/products" class="md-logo">뭐든사<span>MUDEUNSA</span></a>
+    <nav class="md-nav">
+      <a href="<%= basePath %>/products">SHOP</a>
+      <a href="<%= basePath %>/board">고객센터</a>
+      <% if (typeof user !== 'undefined' && user) { %>
+        <a href="<%= basePath %>/user/mypage"><%= user.name %></a>
+        <a href="<%= basePath %>/cart">장바구니</a>
+        <a href="<%= basePath %>/order">주문</a>
+        <% if (isAdmin) { %>
+          <a href="<%= basePath %>/admin" class="admin-link">관리자 모드</a>
+        <% } %>
+        <a href="<%= basePath %>/user/logout">로그아웃</a>
+      <% } else { %>
+        <a href="<%= basePath %>/user/login">로그인</a>
+        <a href="<%= basePath %>/user/register">회원가입</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

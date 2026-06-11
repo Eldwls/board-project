@@ -1,0 +1,27 @@
+<%- include('../partials/head', { title: post.title , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-container">
+  <div class="md-panel">
+    <% if (post.is_notice) { %><span class="md-tag md-tag-notice">공지</span><% } %>
+    <% if (post.is_private) { %><span class="md-tag md-tag-lock">비밀글</span><% } %>
+    <span class="md-tag md-tag-lock" style="background:#f7f7f7;"><%= post.category %></span>
+    <h1 style="font-size:22px;font-weight:900;margin:12px 0 8px;"><%= post.title %></h1>
+    <p style="font-size:12px;color:#9e9e9e;"><%= post.author %> · 조회 <%= post.views %> · <%= new Date(post.created_at).toLocaleString('ko-KR') %></p>
+    <div style="margin:20px 0;white-space:pre-wrap;font-size:14px;line-height:1.8;"><%= post.content %></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="<%= basePath %>/board" class="md-btn md-btn-g">목록</a>
+      <% if (user) { %><a href="<%= basePath %>/board/<%= post.id %>/reply" class="md-btn md-btn-b">답글</a><% } %>
+      <% if (user && (isAdmin || user.id === post.user_id)) { %>
+        <a href="<%= basePath %>/board/<%= post.id %>/edit" class="md-btn md-btn-g">수정</a>
+        <form action="<%= basePath %>/board/<%= post.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('삭제?');">
+          <button class="md-btn md-btn-b">삭제</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+  <% if (replyTree && replyTree.length) { %>
+    <h2 class="md-section-title">답변</h2>
+    <%- include('../partials/reply-tree', { replyTree: replyTree }) %>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

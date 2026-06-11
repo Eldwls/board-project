@@ -1,0 +1,18 @@
+<%- include('../partials/head', { title: '아이디 찾기' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-auth">
+  <div class="md-auth-box">
+    <h1>아이디 찾기</h1>
+    <% if (error) { %><div class="md-alert md-alert-err"><%= error %></div><% } %>
+    <% if (result) { %>
+      <div class="md-alert">가입된 아이디: <strong><%= result.join(', ') %></strong></div>
+    <% } %>
+    <form action="<%= basePath %>/user/find-id" method="POST" class="md-form">
+      <label>가입 시 입력한 이름</label>
+      <input type="text" name="name" required>
+      <button type="submit" class="md-btn md-btn-b" style="width:100%;">조회</button>
+    </form>
+    <p style="text-align:center;margin-top:16px;font-size:12px;"><a href="<%= basePath %>/user/login">로그인</a></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

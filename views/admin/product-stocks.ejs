@@ -1,0 +1,22 @@
+<%- include('../partials/head', { title: '사이즈별 재고' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-container">
+  <h1 class="md-section-title"><%= product.name %> · 사이즈별 재고</h1>
+  <% if (saved) { %><div class="md-alert">재고가 저장되었습니다.</div><% } %>
+  <p style="font-size:13px;color:#9e9e9e;margin-bottom:20px;">size_type: <%= product.size_type %> — 관리자가 수동으로 재고를 채워 주세요.</p>
+  <div class="md-panel md-form">
+    <form action="<%= basePath %>/admin/products/<%= product.id %>/stocks" method="POST">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+        <% stocks.forEach(function (s) { %>
+          <div>
+            <label><%= s.size %></label>
+            <input type="number" name="stock_<%= s.size %>" value="<%= s.stock %>" min="0" style="margin-bottom:0;">
+          </div>
+        <% }) %>
+      </div>
+      <button type="submit" class="md-btn md-btn-b" style="margin-top:20px;">재고 저장</button>
+      <a href="<%= basePath %>/admin?tab=products" class="md-btn md-btn-g">대시보드</a>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,148 @@
+<%- include('../partials/head', { title: product.name , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<div class="md-container">
+  <div class="md-detail">
+    <div style="position:relative;">
+      <img src="<%= product.image %>" alt="<%= product.name %>" onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80'">
+      <% if (product.stock < 1) { %><div class="md-soldout" style="position:absolute;inset:0;">SOLD OUT</div><% } %>
+    </div>
+    <div>
+      <p class="md-cat"><%= product.category %> · <%= product.size_type %></p>
+      <h1 style="font-size:24px;font-weight:900;margin:0 0 12px;"><%= product.name %></h1>
+      <p style="font-size:20px;font-weight:700;"><%= product.price.toLocaleString() %>원</p>
+      <p style="color:#4a4a4a;font-size:14px;"><%= product.description %></p>
+      <p style="font-size:12px;color:#9e9e9e;">♥ <%= product.likes.toLocaleString() %></p>
+
+      <label class="md-size-label">사이즈 선택</label>
+      <div class="md-size-btns" id="sizeBtns">
+        <% sizeList.forEach(function (s) { %>
+          <button type="button" class="md-size-btn" data-size="<%= s.size %>" data-stock="<%= s.stock %>"><%= s.size %></button>
+        <% }) %>
+      </div>
+      <p id="stockStatus" class="md-stock-status">사이즈를 선택해 주세요</p>
+      <input type="hidden" id="selectedSize" value="">
+
+      <div class="md-actions-row" id="actionArea" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <% if (user) { %>
+          <form action="<%= basePath %>/wishlist/toggle" method="POST">
+            <input type="hidden" name="productId" value="<%= product.id %>">
+            <input type="hidden" name="redirect" value="/products/<%= product.id %>">
+            <button type="submit" class="md-btn md-btn-w"><%= inWishlist ? '♥' : '♡' %> 위시리스트</button>
+          </form>
+        <% } %>
+        <a href="<%= basePath %>/products" class="md-btn md-btn-g">목록</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 섹션 -->
+  <section class="md-reviews" style="margin-top:48px;">
+    <h2 class="md-section-title">리뷰 (<%= reviews.length %>)</h2>
+    <div class="md-review-filters">
+      <form method="GET" action="<%= basePath %>/products/<%= product.id %>" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+        <label><input type="checkbox" name="photo_only" value="1" <%= photoOnly ? 'checked' : '' %> onchange="this.form.submit()"> 사진 후기만</label>
+        <select name="review_sort" onchange="this.form.submit()">
+          <option value="latest" <%= reviewSort === 'latest' ? 'selected' : '' %>>최신순</option>
+          <option value="likes" <%= reviewSort === 'likes' ? 'selected' : '' %>>좋아요 많은 순</option>
+          <option value="rating" <%= reviewSort === 'rating' ? 'selected' : '' %>>최다 평점순 (5점 우선)</option>
+        </select>
+        <% if (photoOnly) { %><input type="hidden" name="photo_only" value="1"><% } %>
+      </form>
+    </div>
+
+    <% if (user) { %>
+      <div class="md-panel md-form" style="margin:20px 0;">
+        <h3 style="margin:0 0 12px;font-size:14px;font-weight:900;">리뷰 작성 (+5,000P 적립)</h3>
+        <form action="<%= basePath %>/products/<%= product.id %>/reviews" method="POST">
+          <label>평점</label>
+          <div class="md-stars-input">
+            <% for (var ri = 5; ri >= 1; ri--) { var stars = ''; for (var si = 0; si < ri; si++) stars += '★'; %>
+              <label><input type="radio" name="rating" value="<%= ri %>" <%= ri === 5 ? 'checked' : '' %>> <%= stars %></label>
+            <% } %>
+          </div>
+          <label>내용</label><textarea name="content" rows="3"></textarea>
+          <label>포토 URL (선택)</label>
+          <input type="url" name="image_url" placeholder="https://images.unsplash.com/...">
+          <button type="submit" class="md-btn md-btn-b">리뷰 등록</button>
+        </form>
+      </div>
+    <% } %>
+
+    <% reviews.forEach(function (r) { %>
+      <div class="md-panel md-review-item">
+        <div class="md-stars"><% for (var si = 0; si < r.rating; si++) { %>★<% } %><% for (var sj = 0; sj < 5 - r.rating; sj++) { %>☆<% } %></div>
+        <p style="font-size:12px;color:#9e9e9e;"><%= r.user_name %> · <%= new Date(r.created_at).toLocaleString('ko-KR') %> · ♥ <%= r.likes %></p>
+        <% if (r.image_url) { %><img src="<%= r.image_url %>" class="md-review-photo" alt="후기"><% } %>
+        <p style="font-size:14px;white-space:pre-wrap;"><%= r.content %></p>
+      </div>
+    <% }) %>
+    <% if (!reviews.length) { %><p style="color:#9e9e9e;">아직 리뷰가 없습니다.</p><% } %>
+  </section>
+</div>
+
+<script>
+var alertSizes = <%- JSON.stringify(alertSizes) %>;
+var productId = <%= product.id %>;
+var selectedSize = '';
+var selectedStock = 0;
+
+document.querySelectorAll('.md-size-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.md-size-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    selectedSize = btn.dataset.size;
+    selectedStock = parseInt(btn.dataset.stock, 10);
+    document.getElementById('selectedSize').value = selectedSize;
+    var status = document.getElementById('stockStatus');
+    if (selectedStock <= 0) {
+      status.textContent = '품절 (SOLD OUT)';
+      status.className = 'md-stock-status soldout';
+    } else if (selectedStock >= 10) {
+      status.textContent = '재고 여유 (10개 이상)';
+      status.className = 'md-stock-status ok';
+    } else {
+      status.textContent = '품절 임박 (남은 수량: ' + selectedStock + '개)';
+      status.className = 'md-stock-status low';
+    }
+    renderActions();
+  });
+});
+
+function renderActions() {
+  var area = document.getElementById('actionArea');
+  var wishHtml = area.querySelector('form[action*="wishlist"]');
+  var listHtml = area.querySelector('a[href="<%= basePath %>/products"]');
+  area.innerHTML = '';
+  if (selectedStock > 0) {
+    area.innerHTML += '<form action="<%= basePath %>/cart/add" method="POST" style="display:inline;"><input type="hidden" name="productId" value="'+productId+'"><input type="hidden" name="size" value="'+selectedSize+'"><input type="hidden" name="redirect" value="/cart?message=added"><button class="md-btn md-btn-g">장바구니</button></form>';
+    area.innerHTML += '<form action="<%= basePath %>/cart/add" method="POST" style="display:inline;"><input type="hidden" name="productId" value="'+productId+'"><input type="hidden" name="size" value="'+selectedSize+'"><input type="hidden" name="buy_now" value="1"><button class="md-btn md-btn-b">바로구매</button></form>';
+  } else if (selectedSize) {
+    var subscribed = alertSizes.indexOf(selectedSize) >= 0;
+    area.innerHTML += '<button type="button" class="md-btn md-btn-b" id="restockBtn" '+(subscribed?'disabled':'')+'>'+(subscribed?'알림 신청 완료':'재입고 알림 신청')+'</button>';
+    document.getElementById('restockBtn') && document.getElementById('restockBtn').addEventListener('click', requestRestock);
+  }
+  <% if (user) { %>
+  area.innerHTML += '<form action="<%= basePath %>/wishlist/toggle" method="POST" style="display:inline;"><input type="hidden" name="productId" value="<%= product.id %>"><input type="hidden" name="redirect" value="/products/<%= product.id %>"><button class="md-btn md-btn-w"><%= inWishlist ? "♥" : "♡" %> 위시</button></form>';
+  <% } %>
+  area.innerHTML += '<a href="<%= basePath %>/products" class="md-btn md-btn-g">목록</a>';
+}
+
+function requestRestock() {
+  if (!selectedSize) { alert('사이즈를 선택해 주세요.'); return; }
+  if (!confirm('재고가 다시 들어오면 알림을 받으시겠습니까?')) return;
+  fetch(bp('/products/' + productId + '/restock-alert'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'size=' + encodeURIComponent(selectedSize)
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    alert(data.message || (data.ok ? '신청 완료' : '실패'));
+    if (data.ok) location.reload();
+  });
+}
+
+var params = new URLSearchParams(location.search);
+if (params.get('review_ok')) alert('리뷰가 등록되었습니다. 5,000P가 적립되었습니다!');
+</script>
+
+<%- include('../partials/footer') %>

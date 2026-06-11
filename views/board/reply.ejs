@@ -1,0 +1,15 @@
+<%- include('../partials/head', { title: '답글' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-container" style="max-width:640px;">
+  <div class="md-panel" style="background:#f7f7f7;font-size:13px;">원글 · <strong><%= parent.title %></strong></div>
+  <div class="md-panel md-form">
+    <% if (error) { %><div class="md-alert md-alert-err"><%= error %></div><% } %>
+    <form action="<%= basePath %>/board/<%= parent.id %>/reply" method="POST">
+      <label>제목</label><input type="text" name="title" value="Re: <%= parent.title %>" required>
+      <label>내용</label><textarea name="content" required></textarea>
+      <button type="submit" class="md-btn md-btn-b">등록</button>
+      <a href="<%= basePath %>/board/<%= parent.parent_id || parent.id %>" class="md-btn md-btn-g">취소</a>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

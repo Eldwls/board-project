@@ -1,0 +1,100 @@
+<%- include('../partials/head', { title: '마이페이지' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<div class="md-hero">
+  <h1>MY PAGE</h1>
+  <p>뭐든사 회원 대시보드</p>
+</div>
+
+<div class="md-container">
+  <div class="md-tabs">
+    <a href="<%= basePath %>/user/mypage?tab=profile" class="md-tab <%= tab === 'profile' ? 'active' : '' %>">내 정보</a>
+    <a href="<%= basePath %>/user/mypage?tab=orders" class="md-tab <%= tab === 'orders' ? 'active' : '' %>">주문내역</a>
+    <a href="<%= basePath %>/user/mypage?tab=wishlist" class="md-tab <%= tab === 'wishlist' ? 'active' : '' %>">위시리스트</a>
+    <a href="<%= basePath %>/user/mypage?tab=inquiries" class="md-tab <%= tab === 'inquiries' ? 'active' : '' %>">문의글</a>
+  </div>
+
+  <% if (tab === 'profile') { %>
+    <div class="md-panel">
+      <p style="font-size:22px;font-weight:900;margin:0 0 16px;">적립금 <%= (profile.points || 0).toLocaleString() %>P</p>
+      <p><strong>이름</strong> · <%= profile.name %></p>
+      <p><strong>아이디</strong> · <%= profile.username %></p>
+      <% if (profile.gender) { %><p><strong>성별</strong> · <%= profile.gender %></p><% } %>
+      <% if (profile.age) { %><p><strong>나이</strong> · <%= profile.age %></p><% } %>
+      <% if (profile.phone) { %><p><strong>전화</strong> · <%= profile.phone %></p><% } %>
+      <% if (profile.email) { %><p><strong>이메일</strong> · <%= profile.email %></p><% } %>
+      <% if (profile.address) { %><p><strong>주소</strong> · <%= profile.address %></p><% } %>
+      <p><strong>상태</strong> · <%= profile.status === 'active' ? '활동중' : '탈퇴함' %></p>
+      <% if (profile.username !== 'admin') { %>
+        <form action="<%= basePath %>/user/withdraw" method="POST" style="margin-top:20px;" onsubmit="return confirm('정말 탈퇴하시겠습니까?');">
+          <button type="submit" class="md-btn md-btn-b">회원 탈퇴</button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+
+  <% if (tab === 'orders') { %>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>주문번호</th><th>금액</th><th>상태</th><th>주문일</th><th></th></tr></thead>
+        <tbody>
+          <% if (!orders.length) { %><tr><td colspan="5" style="text-align:center;padding:32px;color:#9e9e9e;">주문 내역 없음</td></tr><% } %>
+          <% orders.forEach(function (o) { %>
+            <tr>
+              <td>#<%= o.id %></td>
+              <td><%= o.total_price.toLocaleString() %>원</td>
+              <td><%= o.status %></td>
+              <td><%= new Date(o.created_at).toLocaleString('ko-KR') %></td>
+              <td><a href="<%= basePath %>/order/<%= o.id %>">상세</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (tab === 'wishlist') { %>
+    <% if (err === 'soldout') { %><div class="md-alert md-alert-err">품절 상품은 장바구니에 담을 수 없습니다.</div><% } %>
+    <div class="md-grid">
+      <% if (!wishlist.length) { %><p style="grid-column:1/-1;text-align:center;color:#9e9e9e;">위시리스트가 비어 있습니다.</p><% } %>
+      <% wishlist.forEach(function (w) { %>
+        <div class="md-card">
+          <div class="md-card-img"><img src="<%= w.image %>" alt="<%= w.name %>"><% if (w.stock < 1) { %><div class="md-soldout">SOLD OUT</div><% } %></div>
+          <p class="md-name"><%= w.name %></p>
+          <p class="md-price"><%= w.price.toLocaleString() %>원</p>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <% if (w.stock > 0) { %>
+              <form action="<%= basePath %>/wishlist/to-cart" method="POST" style="flex:1;"><input type="hidden" name="productId" value="<%= w.product_id %>"><button class="md-btn md-btn-b" style="width:100%;">장바구니</button></form>
+            <% } %>
+            <form action="<%= basePath %>/wishlist/remove" method="POST"><input type="hidden" name="productId" value="<%= w.product_id %>"><button class="md-btn md-btn-g">삭제</button></form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (tab === 'inquiries') { %>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>번호</th><th>카테고리</th><th>제목</th><th>작성일</th></tr></thead>
+        <tbody>
+          <% if (!myPosts.length) { %><tr><td colspan="4" style="text-align:center;padding:32px;">문의 없음</td></tr><% } %>
+          <% myPosts.forEach(function (p) { %>
+            <tr>
+              <td><%= p.id %></td>
+              <td><%= p.category %></td>
+              <td>
+                <a href="<%= basePath %>/board/<%= p.id %>"><%= p.title %></a>
+                <% if (p.is_private) { %><span class="md-tag md-tag-lock">비밀</span><% } %>
+              </td>
+              <td><%= new Date(p.created_at).toLocaleString('ko-KR') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <a href="<%= basePath %>/board/write" class="md-btn md-btn-b" style="margin-top:16px;">문의 작성</a>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,49 @@
+<div class="md-card" data-product-id="<%= product.id %>">
+  <div class="md-card-img">
+    <a href="<%= basePath %>/products/<%= product.id %>">
+      <img src="<%= product.image %>" alt="<%= product.name %>" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80'">
+      <% if (product.stock < 1) { %><div class="md-soldout">SOLD OUT</div><% } %>
+    </a>
+  </div>
+  <a href="<%= basePath %>/products/<%= product.id %>">
+    <p class="md-cat"><%= product.category %></p>
+    <p class="md-name"><%= product.name %></p>
+    <p class="md-price"><%= product.price.toLocaleString() %>원</p>
+    <p class="md-likes">♥ <%= (product.likes || 0).toLocaleString() %> · 후기 <%= product.review_count || 0 %></p>
+  </a>
+
+  <% if (product.sizes && product.sizes.length) { %>
+    <label class="md-size-label">사이즈</label>
+    <select class="md-size-select" id="size-<%= product.id %>">
+      <% product.sizes.forEach(function (sz) { %>
+        <option value="<%= sz %>"><%= sz %></option>
+      <% }) %>
+    </select>
+  <% } else { %>
+    <input type="hidden" id="size-<%= product.id %>" value="FREE">
+  <% } %>
+
+  <div class="md-card-actions">
+    <% if (typeof user !== 'undefined' && user) { %>
+      <form action="<%= basePath %>/cart/add" method="POST" class="md-action-form" onsubmit="return setSizeAndBuy(this, <%= product.id %>, false);">
+        <input type="hidden" name="productId" value="<%= product.id %>">
+        <input type="hidden" name="size" class="size-input">
+        <input type="hidden" name="redirect" value="<%= typeof redirectUrl !== 'undefined' ? redirectUrl + '&cart_added=1' : '/products?cart_added=1' %>">
+        <button type="submit" class="md-btn md-btn-g md-btn-sm">장바구니</button>
+      </form>
+      <form action="<%= basePath %>/cart/add" method="POST" class="md-action-form" onsubmit="return setSizeAndBuy(this, <%= product.id %>, true);">
+        <input type="hidden" name="productId" value="<%= product.id %>">
+        <input type="hidden" name="size" class="size-input">
+        <input type="hidden" name="buy_now" value="1">
+        <button type="submit" class="md-btn md-btn-b md-btn-sm">바로구매</button>
+      </form>
+      <form action="<%= basePath %>/wishlist/toggle" method="POST" class="md-action-form">
+        <input type="hidden" name="productId" value="<%= product.id %>">
+        <input type="hidden" name="redirect" value="<%= typeof redirectUrl !== 'undefined' ? redirectUrl : '/products' %>">
+        <button type="submit" class="md-btn md-btn-w md-btn-sm"><%= wishlistIds && wishlistIds.indexOf(product.id) >= 0 ? '♥' : '♡' %> 위시</button>
+      </form>
+    <% } else { %>
+      <a href="<%= basePath %>/user/login" class="md-btn md-btn-g md-btn-sm">로그인 후 구매</a>
+    <% } %>
+  </div>
+</div>

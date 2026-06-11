@@ -1,0 +1,10 @@
+<%- include('partials/head', { title: '오류' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('partials/header') %>
+<div class="md-container">
+  <div class="md-panel" style="text-align:center;padding:48px;">
+    <h1 style="font-size:24px;font-weight:900;margin:0 0 12px;">ERROR</h1>
+    <p style="color:#4a4a4a;"><%= message %></p>
+    <a href="<%= basePath %>/products" class="md-btn md-btn-b" style="margin-top:24px;">뭐든사 홈</a>
+  </div>
+</div>
+<%- include('partials/footer') %>

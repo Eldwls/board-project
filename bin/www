@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+/**
+ * PM2 / npm start는 app.js를 직접 실행합니다.
+ * 이 파일은 하위 호환용으로 app.js만 로드합니다.
+ */
+require('../app');

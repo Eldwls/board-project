@@ -1,0 +1,21 @@
+<%- include('../partials/head', { title: '글 수정' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-container" style="max-width:640px;">
+  <div class="md-panel md-form">
+    <% if (error) { %><div class="md-alert md-alert-err"><%= error %></div><% } %>
+    <form action="<%= basePath %>/board/<%= post.id %>/edit" method="POST">
+      <label>카테고리</label>
+      <select name="category">
+        <% categories.forEach(function (c) { %><option value="<%= c %>" <%= post.category === c ? 'selected' : '' %>><%= c %></option><% }) %>
+      </select>
+      <label>제목</label><input type="text" name="title" value="<%= post.title %>" required>
+      <label>내용</label><textarea name="content" required><%= post.content %></textarea>
+      <% if (!post.parent_id) { %>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;"><input type="checkbox" name="is_private" value="1" <%= post.is_private ? 'checked' : '' %>> 비밀글</label>
+      <% } %>
+      <button type="submit" class="md-btn md-btn-b">저장</button>
+      <a href="<%= basePath %>/board/<%= post.id %>" class="md-btn md-btn-g">취소</a>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

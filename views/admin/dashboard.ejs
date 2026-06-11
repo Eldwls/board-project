@@ -1,0 +1,113 @@
+<%- include('../partials/head', { title: '관리자 모드' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<div class="md-hero">
+  <h1>ADMIN · 뭐든사</h1>
+  <p>상품 · 주문 · 회원 통합 관리</p>
+</div>
+
+<div class="md-container">
+  <%- include('../partials/admin-tabs') %>
+
+  <% if (saved) { %><div class="md-alert">변경사항이 저장되었습니다.</div><% } %>
+  <% if (error === 'invalid') { %><div class="md-alert md-alert-err">상품명과 가격을 확인해 주세요.</div><% } %>
+
+  <% if (tab === 'overview') { %>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div class="md-panel" style="text-align:center;"><p style="margin:0;font-size:11px;color:#9e9e9e;">활동 회원</p><p style="margin:4px 0 0;font-size:28px;font-weight:900;"><%= stats.activeUsers %></p></div>
+      <div class="md-panel" style="text-align:center;"><p style="margin:0;font-size:11px;color:#9e9e9e;">탈퇴 회원</p><p style="margin:4px 0 0;font-size:28px;font-weight:900;"><%= stats.withdrawnUsers %></p></div>
+      <div class="md-panel" style="text-align:center;"><p style="margin:0;font-size:11px;color:#9e9e9e;">총 주문</p><p style="margin:4px 0 0;font-size:28px;font-weight:900;"><%= stats.orders %></p></div>
+      <div class="md-panel" style="text-align:center;"><p style="margin:0;font-size:11px;color:#9e9e9e;">등록 상품</p><p style="margin:4px 0 0;font-size:28px;font-weight:900;"><%= stats.products %></p></div>
+    </div>
+  <% } %>
+
+  <% if (tab === 'products') { %>
+    <div class="md-panel md-form" style="margin-bottom:24px;">
+      <h3 style="margin:0 0 16px;font-size:14px;font-weight:900;">신규 상품 등록</h3>
+      <form action="<%= basePath %>/admin/products" method="POST">
+        <label>상품명</label><input type="text" name="name" required>
+        <label>설명</label><textarea name="description"></textarea>
+        <label>가격</label><input type="number" name="price" required min="0">
+        <label>카테고리</label>
+        <select name="category"><% categories.forEach(function (c) { %><option value="<%= c %>"><%= c %></option><% }) %></select>
+        <label>이미지 URL</label>
+        <input type="url" name="image" value="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1200&q=85" required>
+        <button type="submit" class="md-btn md-btn-b">등록 후 사이즈별 재고 설정</button>
+      </form>
+    </div>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>ID</th><th>상품</th><th>타입</th><th>가격</th><th>총재고</th><th>관리</th></tr></thead>
+        <tbody>
+          <% products.forEach(function (p) { %>
+            <tr>
+              <td><%= p.id %></td>
+              <td><img src="<%= p.image %>" style="width:32px;height:42px;object-fit:cover;vertical-align:middle;margin-right:6px;"><%= p.name %></td>
+              <td><%= p.size_type %></td>
+              <td><%= p.price.toLocaleString() %></td>
+              <td><%= p.total_stock || 0 %></td>
+              <td>
+                <a href="<%= basePath %>/admin/products/<%= p.id %>/stocks" class="md-btn md-btn-g">사이즈별 재고</a>
+                <form action="<%= basePath %>/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('삭제하시겠습니까?');" style="display:inline;">
+                  <button class="md-btn md-btn-b">삭제</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (tab === 'orders') { %>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>주문번호</th><th>회원</th><th>금액</th><th>결제</th><th>상태</th><th>주문일</th></tr></thead>
+        <tbody>
+          <% if (!orders.length) { %><tr><td colspan="6" style="text-align:center;padding:32px;">주문 없음</td></tr><% } %>
+          <% orders.forEach(function (o) { %>
+            <tr>
+              <td>#<%= o.id %></td>
+              <td><%= o.name %> (<%= o.username %>)</td>
+              <td><%= o.total_price.toLocaleString() %>원</td>
+              <td><%= o.payment_method || '-' %></td>
+              <td>
+                <form action="<%= basePath %>/admin/orders/<%= o.id %>/status" method="POST">
+                  <select name="status" onchange="this.form.submit()" style="padding:6px;font-size:12px;">
+                    <% statuses.forEach(function (s) { %>
+                      <option value="<%= s %>" <%= o.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }) %>
+                  </select>
+                </form>
+              </td>
+              <td><%= new Date(o.created_at).toLocaleString('ko-KR') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (tab === 'users') { %>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>ID</th><th>아이디</th><th>이름</th><th>연락처</th><th>적립금</th><th>상태</th><th>탈퇴일</th></tr></thead>
+        <tbody>
+          <% users.forEach(function (u) { %>
+            <tr>
+              <td><%= u.id %></td>
+              <td><%= u.username %></td>
+              <td><%= u.name %></td>
+              <td><%= u.phone || '-' %> / <%= u.email || '-' %></td>
+              <td><%= (u.points || 0).toLocaleString() %>P</td>
+              <td><strong><%= u.status === 'active' ? '활동중' : '탈퇴함' %></strong></td>
+              <td><%= u.withdrawn_at ? new Date(u.withdrawn_at).toLocaleString('ko-KR') : '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

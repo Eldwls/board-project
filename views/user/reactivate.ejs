@@ -1,0 +1,17 @@
+<%- include('../partials/head', { title: '재가입' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-auth">
+  <div class="md-auth-box">
+    <h1>재가입 확인</h1>
+    <p style="font-size:14px;color:#4a4a4a;margin-bottom:24px;">탈퇴한 계정입니다. 재가입하시겠습니까?</p>
+    <form action="<%= basePath %>/user/reactivate" method="POST" class="md-form">
+      <input type="hidden" name="username" value="<%= username %>">
+      <input type="hidden" name="password" value="<%= password %>">
+      <input type="hidden" name="name" value="<%= name %>">
+      <input type="hidden" name="confirm" value="yes">
+      <button type="submit" class="md-btn md-btn-b" style="width:100%;margin-bottom:8px;">예, 재가입합니다</button>
+      <a href="<%= basePath %>/user/register" class="md-btn md-btn-g" style="width:100%;display:block;text-align:center;">아니오</a>
+    </form>
+  </div>
+</div>
+<%- include('../partials/footer') %>

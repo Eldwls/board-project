@@ -1,0 +1,36 @@
+<%- include('../partials/head', { title: '고객센터' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+<div class="md-hero"><h1>고객센터</h1><p>1:1 문의 · 비밀글 · 공지</p></div>
+<div class="md-container">
+  <div style="text-align:right;margin-bottom:16px;">
+    <% if (user) { %><a href="<%= basePath %>/board/write" class="md-btn md-btn-b">문의 작성</a>
+    <% } else { %><a href="<%= basePath %>/user/login?redirect=/board/write" class="md-btn md-btn-g">로그인 후 작성</a><% } %>
+  </div>
+  <div class="md-panel" style="padding:0;overflow:hidden;">
+    <table class="md-table">
+      <thead><tr><th>번호</th><th>카테고리</th><th>제목</th><th>작성자</th><th>조회</th><th>작성일</th></tr></thead>
+      <tbody>
+        <% if (!posts.length) { %><tr><td colspan="6" style="text-align:center;padding:32px;">문의 없음</td></tr><% } %>
+        <% posts.forEach(function (p) { %>
+          <tr>
+            <td><%= p.id %></td>
+            <td><%= p.category || '기타' %></td>
+            <td>
+              <% if (p.is_notice) { %><span class="md-tag md-tag-notice">공지</span><% } %>
+              <% if (p.locked) { %>
+                <span class="md-tag md-tag-lock">비밀</span><%= p.title %>
+              <% } else { %>
+                <a href="<%= basePath %>/board/<%= p.id %>"><%= p.title %></a>
+                <% if (p.is_private) { %><span class="md-tag md-tag-lock">비밀</span><% } %>
+              <% } %>
+            </td>
+            <td><%= p.author %></td>
+            <td><%= p.views || 0 %></td>
+            <td><%= new Date(p.created_at).toLocaleString('ko-KR') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<%- include('../partials/footer') %>

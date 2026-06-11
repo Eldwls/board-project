@@ -1,0 +1,44 @@
+<%- include('../partials/head', { title: '장바구니' , basePath: basePath, appUrl: appUrl }) %>
+<%- include('../partials/header') %>
+
+<div class="md-hero"><h1>CART</h1></div>
+<div class="md-container">
+  <% if (message === 'added') { %><div class="md-alert">장바구니에 담았습니다.</div><% } %>
+  <% if (message === 'empty') { %><div class="md-alert md-alert-err">장바구니가 비어 있습니다.</div><% } %>
+  <% if (message === 'stock_insufficient') { %><div class="md-alert md-alert-err">죄송합니다. 선택하신 사이즈의 재고가 부족합니다.</div><% } %>
+  <% if (message === 'stock') { %><div class="md-alert md-alert-err">재고가 부족합니다.</div><% } %>
+
+  <% if (!items.length) { %>
+    <p style="text-align:center;padding:48px;color:#9e9e9e;">장바구니가 비어 있습니다. <a href="<%= basePath %>/products">쇼핑하기</a></p>
+  <% } else { %>
+    <div class="md-panel" style="padding:0;overflow:hidden;">
+      <table class="md-table">
+        <thead><tr><th>상품</th><th>사이즈</th><th>단가</th><th>수량</th><th>소계</th><th></th></tr></thead>
+        <tbody>
+          <% items.forEach(function (item) { %>
+            <tr>
+              <td><div style="display:flex;gap:10px;align-items:center;"><img src="<%= item.image %>" style="width:40px;height:54px;object-fit:cover;"><%= item.name %></div></td>
+              <td><%= item.size %></td>
+              <td><%= item.price.toLocaleString() %>원</td>
+              <td>
+                <form action="<%= basePath %>/cart/update" method="POST" style="display:flex;gap:6px;">
+                  <input type="hidden" name="productId" value="<%= item.product_id %>">
+                  <input type="hidden" name="size" value="<%= item.size %>">
+                  <input type="number" name="quantity" value="<%= item.quantity %>" min="1" max="<%= item.stock %>" style="width:56px;padding:6px;">
+                  <button class="md-btn md-btn-g">변경</button>
+                </form>
+              </td>
+              <td><%= (item.price * item.quantity).toLocaleString() %>원</td>
+              <td><form action="<%= basePath %>/cart/remove" method="POST"><input type="hidden" name="productId" value="<%= item.product_id %>"><input type="hidden" name="size" value="<%= item.size %>"><button class="md-btn md-btn-g">삭제</button></form></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="md-panel" style="display:flex;justify-content:space-between;align-items:center;">
+      <strong style="font-size:18px;">총 <%= total.toLocaleString() %>원</strong>
+      <a href="<%= basePath %>/order/checkout" class="md-btn md-btn-b">주문하기</a>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>
