@@ -14,6 +14,7 @@ var orderRouter = require('./routes/order');
 var wishlistRouter = require('./routes/wishlist');
 var adminRouter = require('./routes/admin');
 var { BASE_PATH, appUrl } = require('./lib/basePath');
+var { renderProductsIndex } = require('./lib/renderProductsIndex');
 
 var app = express();
 app.set('trust proxy', 1);
@@ -26,9 +27,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.use(session({
+  secret: 'mudeunsa-fashion-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    path: BASE_PATH || '/'
+  }
+}));
+
+app.locals.basePath = BASE_PATH;
+app.locals.appUrl = appUrl;
+
+app.use(function (req, res, next) {
+  var session = req.session;
+  res.locals.user = (session && session.user) || null;
+  res.locals.isAdmin = isAdmin(session && session.user);
+  res.locals.flash = (session && session.flash) || null;
+  res.locals.basePath = BASE_PATH;
+  res.locals.appUrl = appUrl;
+  if (session) delete session.flash;
+  next();
+});
+
 /**
- * 대문(/) · BASE_PATH · BASE_PATH/ 진입 시 상품 페이지로 즉시 302
- * Nginx가 prefix를 strip해 '/'로 넘기는 경우와 '/stud2/' 직접 접근 모두 처리
+ * 대문(/) · BASE_PATH · BASE_PATH/ 진입 시 리다이렉트 없이 상품 목록을 그 자리에서 렌더
+ * Nginx prefix strip으로 '/'만 들어오는 경우와 '/stud2/' 직접 접근 모두 처리
  */
 app.use(function homeEntryGuard(req, res, next) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
@@ -56,7 +81,7 @@ app.use(function homeEntryGuard(req, res, next) {
   }
 
   if (isDoor) {
-    return res.redirect(302, appUrl('/products'));
+    return renderProductsIndex(req, res);
   }
 
   next();
@@ -66,30 +91,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 if (BASE_PATH) {
   app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
 }
-
-app.use(session({
-  secret: 'mudeunsa-fashion-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
-    path: BASE_PATH || '/'
-  }
-}));
-
-app.locals.basePath = BASE_PATH;
-app.locals.appUrl = appUrl;
-
-app.use(function (req, res, next) {
-  var session = req.session;
-  res.locals.user = (session && session.user) || null;
-  res.locals.isAdmin = isAdmin(session && session.user);
-  res.locals.flash = (session && session.flash) || null;
-  res.locals.basePath = BASE_PATH;
-  res.locals.appUrl = appUrl;
-  if (session) delete session.flash;
-  next();
-});
 
 function mountRouter(routePath, router) {
   app.use(routePath, router);
