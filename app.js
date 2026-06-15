@@ -6,7 +6,6 @@ var logger = require('morgan');
 var session = require('express-session');
 var { isAdmin } = require('./middleware/auth');
 
-var indexRouter = require('./routes/index');
 var userRouter = require('./routes/user');
 var boardRouter = require('./routes/board');
 var productRouter = require('./routes/products');
@@ -68,8 +67,15 @@ mountRouter('/products', productRouter);
 mountRouter('/cart', cartRouter);
 mountRouter('/order', orderRouter);
 
-app.use('/', indexRouter);
-if (BASE_PATH) app.use(BASE_PATH, indexRouter);
+function homeRedirect(req, res) {
+  res.redirect(appUrl('/products'));
+}
+
+app.get('/', homeRedirect);
+if (BASE_PATH) {
+  app.get(BASE_PATH, homeRedirect);
+  app.get(BASE_PATH + '/', homeRedirect);
+}
 
 function loginRedirect(req, res) {
   res.redirect(appUrl('/user/login'));
