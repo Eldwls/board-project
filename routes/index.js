@@ -1,10 +1,10 @@
 var express = require('express');
-var { appUrl } = require('../lib/basePath');
+var { renderProductsIndex } = require('../lib/renderProductsIndex');
+
 var router = express.Router();
 
-/* 메인 페이지 리다이렉트 (쇼핑몰로 이동) */
-router.get('/', function(req, res, next) {
-  res.redirect(appUrl('/products'));
+router.get('/', function (req, res) {
+  renderProductsIndex(req, res);
 });
 
 module.exports = router;

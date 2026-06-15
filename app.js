@@ -51,41 +51,18 @@ app.use(function (req, res, next) {
   next();
 });
 
-/**
- * 대문(/) · BASE_PATH · BASE_PATH/ 진입 시 리다이렉트 없이 상품 목록을 그 자리에서 렌더
- * Nginx prefix strip으로 '/'만 들어오는 경우와 '/stud2/' 직접 접근 모두 처리
- */
-app.use(function homeEntryGuard(req, res, next) {
-  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-
-  var rawUrl = (req.originalUrl || req.url || '').split('?')[0].split('#')[0];
-  var reqPath = req.path || '/';
-
-  function normalize(p) {
-    if (!p || p === '') return '/';
-    var s = p;
-    while (s.length > 1 && s.charAt(s.length - 1) === '/') {
-      s = s.slice(0, -1);
-    }
-    return s;
-  }
-
-  var normUrl = normalize(rawUrl);
-  var normPath = normalize(reqPath);
-  var normBase = BASE_PATH ? normalize(BASE_PATH) : '';
-
-  var isDoor = normPath === '/' || normUrl === '/' || rawUrl === '' || normUrl === '';
-
-  if (normBase) {
-    isDoor = isDoor || normPath === normBase || normUrl === normBase;
-  }
-
-  if (isDoor) {
-    return renderProductsIndex(req, res);
-  }
-
-  next();
+// 대문 — Nginx proxy_pass strip 환경: '/' 진입 시 리다이렉트 없이 상품 목록 즉시 렌더
+app.get('/', function (req, res) {
+  renderProductsIndex(req, res);
 });
+if (BASE_PATH) {
+  app.get(BASE_PATH, function (req, res) {
+    renderProductsIndex(req, res);
+  });
+  app.get(BASE_PATH + '/', function (req, res) {
+    renderProductsIndex(req, res);
+  });
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 if (BASE_PATH) {
