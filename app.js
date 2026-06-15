@@ -25,6 +25,43 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+/**
+ * 대문(/) · BASE_PATH · BASE_PATH/ 진입 시 상품 페이지로 즉시 302
+ * Nginx가 prefix를 strip해 '/'로 넘기는 경우와 '/stud2/' 직접 접근 모두 처리
+ */
+app.use(function homeEntryGuard(req, res, next) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+
+  var rawUrl = (req.originalUrl || req.url || '').split('?')[0].split('#')[0];
+  var reqPath = req.path || '/';
+
+  function normalize(p) {
+    if (!p || p === '') return '/';
+    var s = p;
+    while (s.length > 1 && s.charAt(s.length - 1) === '/') {
+      s = s.slice(0, -1);
+    }
+    return s;
+  }
+
+  var normUrl = normalize(rawUrl);
+  var normPath = normalize(reqPath);
+  var normBase = BASE_PATH ? normalize(BASE_PATH) : '';
+
+  var isDoor = normPath === '/' || normUrl === '/' || rawUrl === '' || normUrl === '';
+
+  if (normBase) {
+    isDoor = isDoor || normPath === normBase || normUrl === normBase;
+  }
+
+  if (isDoor) {
+    return res.redirect(302, appUrl('/products'));
+  }
+
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 if (BASE_PATH) {
   app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
@@ -66,16 +103,6 @@ mountRouter('/board', boardRouter);
 mountRouter('/products', productRouter);
 mountRouter('/cart', cartRouter);
 mountRouter('/order', orderRouter);
-
-function homeRedirect(req, res) {
-  res.redirect(appUrl('/products'));
-}
-
-app.get('/', homeRedirect);
-if (BASE_PATH) {
-  app.get(BASE_PATH, homeRedirect);
-  app.get(BASE_PATH + '/', homeRedirect);
-}
 
 function loginRedirect(req, res) {
   res.redirect(appUrl('/user/login'));
