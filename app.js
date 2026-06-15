@@ -14,7 +14,6 @@ var orderRouter = require('./routes/order');
 var wishlistRouter = require('./routes/wishlist');
 var adminRouter = require('./routes/admin');
 var { BASE_PATH, appUrl } = require('./lib/basePath');
-var { renderProductsIndex } = require('./lib/renderProductsIndex');
 
 var app = express();
 app.set('trust proxy', 1);
@@ -51,22 +50,19 @@ app.use(function (req, res, next) {
   next();
 });
 
-// 대문 — Nginx proxy_pass strip 환경: '/' 진입 시 리다이렉트 없이 상품 목록 즉시 렌더
-app.get('/', function (req, res) {
-  renderProductsIndex(req, res);
-});
-if (BASE_PATH) {
-  app.get(BASE_PATH, function (req, res) {
-    renderProductsIndex(req, res);
-  });
-  app.get(BASE_PATH + '/', function (req, res) {
-    renderProductsIndex(req, res);
-  });
-}
-
 app.use(express.static(path.join(__dirname, 'public')));
 if (BASE_PATH) {
   app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
+}
+
+// 대문 주소(/ 또는 BASE_PATH) 진입 시 상품 목록(/products)으로 리다이렉트
+function productsHomeRedirect(req, res) {
+  res.redirect(appUrl('/products'));
+}
+app.get('/', productsHomeRedirect);
+if (BASE_PATH) {
+  app.get(BASE_PATH, productsHomeRedirect);
+  app.get(BASE_PATH + '/', productsHomeRedirect);
 }
 
 function mountRouter(routePath, router) {
